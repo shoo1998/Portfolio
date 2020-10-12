@@ -1,0 +1,57 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""
+Created on Fri Oct  9 21:41:34 2020
+
+@author: shoo
+"""
+#Importing all required libraries
+#Created by Sanket Karve
+import matplotlib.pyplot as plt
+import numpy as np
+import pandas as pd
+import pandas_datareader as web
+from matplotlib.ticker import FuncFormatter
+!pip install PyPortfolioOpt
+#Installing the Portfolio Optimzation Library
+from pypfopt.efficient_frontier import EfficientFrontier
+from pypfopt import risk_models
+from pypfopt import expected_returns
+from matplotlib.ticker import FuncFormatter
+
+#Portfolio Optimzation Library
+from pypfopt.efficient_frontier import EfficientFrontier
+from pypfopt import risk_models, expected_returns,\
+    objective_functions, base_optimizer
+tickers = ["GOOGL", "FB", "AAPL", "NFLX", "AMZN", "TSLA", "MSFT"]
+num_stocks = len(tickers)
+data_dict = {}
+for stock in tickers:
+    data_dict[stock]= web.DataReader(stock, start = "2018-06-20",
+            end = "2020-06-20", data_source = "yahoo")
+
+# took a different path than montecarlo walkthrough    
+df_stocks = pd.concat([val["Close"] for val in data_dict.values()], 
+                      keys = data_dict.keys(), axis = 1)
+
+print(df_stocks.tail())
+
+# next, calculate expected returns and sigma
+mu = expected_returns.mean_historical_return(df_stocks)
+# Sample Variance of Portfolio
+sigma = risk_models.sample_cov(df_stocks)
+
+print("mu:", mu)
+print("sigma", sigma)
+
+# Max Sharpe Ratio - Tangent to the EF
+# calculate optimal weights for each stock in portfolio
+# negative weights allow for shorts
+ef = EfficientFrontier(mu, sigma, weight_bounds = (0,1))
+sharpe_pfolio = ef.max_sharpe()
+
+# make sure weights are positive or 0
+sharpe_pwt = ef.clean_weights()
+print("ef:", ef)#, sep = "\n")
+print("sharpe_pfolio:", sharpe_pfolio)
+print("sharpe_pwt:", sharpe_pwt)
