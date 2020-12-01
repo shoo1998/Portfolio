@@ -12,7 +12,6 @@ import numpy as np
 import pandas as pd
 import pandas_datareader as web
 from matplotlib.ticker import FuncFormatter
-!pip install PyPortfolioOpt
 #Installing the Portfolio Optimzation Library
 from pypfopt.efficient_frontier import EfficientFrontier
 from pypfopt import risk_models

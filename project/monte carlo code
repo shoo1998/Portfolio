@@ -1,0 +1,204 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""
+Created on Tue Nov 24 18:42:46 2020
+
+@author: shoo
+"""
+
+import matplotlib.pyplot as plt
+import numpy as np
+import pandas as pd
+import pandas_datareader as web
+from matplotlib.ticker import FuncFormatter
+
+#Portfolio Optimzation Library
+from pypfopt.efficient_frontier import EfficientFrontier
+from pypfopt import risk_models, expected_returns,\
+    objective_functions, base_optimizer
+
+tickers = ["GOOGL", "FB", "AAPL", "NFLX", "AMZN", "TSLA", "MSFT"]
+num_stocks = len(tickers)
+data_dict = {}
+for stock in tickers:
+    data_dict[stock]= web.DataReader(stock, start = "2018-06-20",
+            end = "2020-06-20", data_source = "yahoo")
+
+# took a different path than montecarlo walkthrough    
+df_stocks = pd.concat([val["Close"] for val in data_dict.values()], 
+                      keys = data_dict.keys(), axis = 1)
+
+print(df_stocks.tail())
+
+# next, calculate expected returns and sigma
+mu = expected_returns.mean_historical_return(df_stocks)
+# Sample Variance of Portfolio
+sigma = risk_models.sample_cov(df_stocks)
+
+print("mu:", mu)
+print("sigma", sigma)
+
+# Max Sharpe Ratio - Tangent to the EF
+# calculate optimal weights for each stock in portfolio
+# negative weights allow for shorts
+ef = EfficientFrontier(mu, sigma, weight_bounds = (0,1))
+sharpe_pfolio = ef.max_sharpe()
+
+# make sure weights are positive or 0
+sharpe_pwt = ef.clean_weights()
+# print("ef:", ef)#, sep = "\n")
+print("sharpe_pfolio:", sharpe_pfolio)
+print("sharpe_pwt:", sharpe_pwt)
+
+
+# Value at Risk Calculation
+# calculate daily pct_change
+df_stocks_pct_change = df_stocks.pct_change()
+# use daily pct_change to normalize base value at 1,
+# generate cumulative returns for each stock
+df_stocks_returns = (df_stocks_pct_change + 1).cumprod()
+print(df_stocks_returns)
+
+plt.rcParams.update({'font.size': 40})
+fig, ax = plt.subplots(figsize = (40, 20))
+plt.title("Cumulative Returns", fontsize = 70)
+df_stocks_returns.plot(ax = ax, linewidth = 5, legend = True)
+
+
+# ######## Get Final Value of Portfolio using estimated stock weights #########
+# # save final cumulative returns of stock at 
+# # final value
+# pre1 = df_stocks_returns.iloc[-1]
+# # save final price of each stock
+
+# # multiply returns from the period by the weights
+# # implied by the tangency at the efficient frontier
+# # to do this, take the dot product of pre1 (final cumulative returns)
+# # and the portfolio weights using numpy.
+# # portfolio weights are saved in a dictionary, so we make a list
+# # of the saved values, convert to numpy array
+# ex_rtn = pre1.dot(pd.DataFrame(sharpe_pwt.values()))
+# print(ex_rtn)
+##############################################################################
+Time = 14600
+import math
+####### Estimate value of portfolio at each date using stock price data ######
+## create portfolio value for every period.
+df_stocks_returns["Portfolio"] = np.nan
+max_yields = {stock: 0 for stock in tickers}
+for i in range(df_stocks_returns["MSFT"].count()):
+    pre1 = df_stocks_returns.drop("Portfolio", axis = 1).iloc[i]
+    # make an array of the stock returns
+    pre1 = np.array(pre1)
+    # multiply cumulative returns for each stock in each period
+    # by the portfolio weights
+    varsigma = pre1.std()
+    ex_rtn = pre1.dot(np.array(list(sharpe_pwt.values())))
+    df_stocks_returns.iloc[i]["Portfolio"] = ex_rtn
+     # identify max return for each stock
+    # checks each period
+    for stock, max_return in max_yields.items():
+        # check return of each stock
+        curr_ret = df_stocks_returns.iloc[i] - 1
+        if curr_ret > max_return:
+            max_yields[stock] = curr_ret
+
+for i in range(df_stocks_returns["FB"].count()):
+    pre1 = df_stocks_returns.drop("Portfolio", axis = 1).iloc[i]
+    pre1 = np.array(pre1)
+    varsigma = pre1.std()
+    ex_rtn = pre1.dot(np.array(list(sharpe_pwt.values())))
+    df_stocks_returns.iloc[i]["Portfolio"] = ex_rtn
+    for stock, max_return in max_yields.items():
+        curr_ret = df_stocks_returns.iloc[i] - 1
+        if curr_ret > max_return:
+            max_yields[stock] = curr_ret
+     
+     
+for i in range(df_stocks_returns["GOOGL"].count()):
+    pre1 = df_stocks_returns.drop("Portfolio", axis = 1).iloc[i]
+    pre1 = np.array(pre1)
+    varsigma = pre1.std()
+    ex_rtn = pre1.dot(np.array(list(sharpe_pwt.values())))
+    df_stocks_returns.iloc[i]["Portfolio"] = ex_rtn
+    for stock, max_return in max_yields.items():
+        curr_ret = df_stocks_returns.iloc[i] - 1
+        if curr_ret > max_return:
+            max_yields[stock] = curr_ret
+
+
+for i in range(df_stocks_returns["AAPL"].count()):
+    pre1 = df_stocks_returns.drop("Portfolio", axis = 1).iloc[i]
+    pre1 = np.array(pre1)
+    varsigma = pre1.std()
+    ex_rtn = pre1.dot(np.array(list(sharpe_pwt.values())))
+    df_stocks_returns.iloc[i]["Portfolio"] = ex_rtn
+    for stock, max_return in max_yields.items():
+        curr_ret = df_stocks_returns.iloc[i] - 1
+        if curr_ret > max_return:
+            max_yields[stock] = curr_ret
+
+
+
+for i in range(df_stocks_returns["NFLX"].count()):
+    pre1 = df_stocks_returns.drop("Portfolio", axis = 1).iloc[i]
+    pre1 = np.array(pre1)
+    varsigma = pre1.std()
+    ex_rtn = pre1.dot(np.array(list(sharpe_pwt.values())))
+    df_stocks_returns.iloc[i]["Portfolio"] = ex_rtn
+    for stock, max_return in max_yields.items():
+        curr_ret = df_stocks_returns.iloc[i] - 1
+        if curr_ret > max_return:
+            max_yields[stock] = curr_ret
+
+
+
+
+for i in range(df_stocks_returns["AMZN"].count()):
+    pre1 = df_stocks_returns.drop("Portfolio", axis = 1).iloc[i]
+    pre1 = np.array(pre1)
+    varsigma = pre1.std()
+    ex_rtn = pre1.dot(np.array(list(sharpe_pwt.values())))
+    df_stocks_returns.iloc[i]["Portfolio"] = ex_rtn
+    for stock, max_return in max_yields.items():
+        curr_ret = df_stocks_returns.iloc[i] - 1
+        if curr_ret > max_return:
+            max_yields[stock] = curr_ret
+
+
+for i in range(df_stocks_returns["TSLA"].count()):
+    pre1 = df_stocks_returns.drop("Portfolio", axis = 1).iloc[i]
+    pre1 = np.array(pre1)
+    varsigma = pre1.std()
+    ex_rtn = pre1.dot(np.array(list(sharpe_pwt.values())))
+    df_stocks_returns.iloc[i]["Portfolio"] = ex_rtn
+    for stock, max_return in max_yields.items():
+        curr_ret = df_stocks_returns.iloc[i] - 1
+        if curr_ret > max_return:
+            max_yields[stock] = curr_ret
+
+
+for i in range(Time):
+    daily_return=(np.random.normal(ex_rtn,varsigma,1))
+    
+    #another 4 loop for each stock generate daily new return and add new date and set daily return to that date
+
+    # identify max return for each stock
+    # checks each period
+    # make another block of code that calculates the pct change
+    # from max_return. Then, if pct_change > rule_value, perform
+    #   some action...
+            
+            
+print(df_stocks_returns["Portfolio"])
+
+"""
+See if you can plot the portfolio returns using the code in lines 54-57 as template
+"""
+##############################################################################
+
+price = df_stocks.iloc[-1]
+# # save variance of returns among selected stocks
+varsigma = pre1.std()
+
+

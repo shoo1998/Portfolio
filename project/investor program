@@ -1,0 +1,43 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""
+Created on Fri Nov 20 15:12:22 2020
+
+@author: shoo
+"""
+
+def portfolio():
+    portfolio = cash + investments
+    print ("cash")
+    print("investments")
+    print(cash)
+    print(investments)
+
+
+def cash(money, money_to_invest):
+    cash = money + money_to_invest
+def money(money_to_invest, x):
+    money = x + money_to_invest
+money_to_invest = 1000
+def money_to_buy():
+    money_to_buy = .1 * money
+    
+    
+def investments():
+    investments = stock_share()
+stock = []
+stock_share = money_to_buy / stock
+    
+
+
+
+def buy():
+    buy = ((stock * stock_price) @ stock_share)
+def sell():
+    sell =  ((stock_share * stock) @ money)
+    
+    
+    
+    
+    
+    
